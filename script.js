@@ -7,6 +7,8 @@ var y = 0;
 var spacing = 10;
 
 var x_limit;
+var graphics;
+
 
 function setup() {
   createCanvas(500, 700);
@@ -15,12 +17,13 @@ function setup() {
     "spacing" : makeSlider(5, 50, 10, 2, initialize, "Spacing"), //min, max, start, step, callback, title_text
     "forward_sl_prob": makeSlider(0, 1, 0.5, 0.1, null, "Probability of the forward slash"),
     "x_limit_dec": makeSlider(-10, 10, 0, 1, null, "X limit decrement or Increment"),
-    "borderSize": makeSlider(0, 30, 10, 5, changeBorder, "Border Thickness"),
+    "width": makeSlider(0, width, width, 5, set_canvas_size, "Side margin"),
+    "height": makeSlider(0, height, height, 5, set_canvas_size, "Top bottom margin"),
 
     // Circle of doom
-    "codSize": makeSlider(0, 100, 50, 5, changeCOD, "COD Size"),
-    "codX": makeSlider(0, 100, 50, 1, changeCOD, "COD x"),
-    "codY": makeSlider(0, 100, 50, 1, changeCOD, "COD y"),
+    "codSize": makeSlider(0, 200, 50, 5, null, "COD Size"),
+    "codX": makeSlider(0, 100, 50, 1, null, "COD x"),
+    "codY": makeSlider(0, 100, 50, 1, null, "COD y"),
   }
 
   canvas_sizes = {
@@ -29,6 +32,8 @@ function setup() {
     "A5": [420, 595],
     "A6": [298, 420],
   }
+
+  graphics = createGraphics(sliders['width'].value(), sliders['height'].value());
 
   // Some other dom elements
   canvas_size = createSelect(); // The selection of sizes object
@@ -45,18 +50,21 @@ function setup() {
   x_limit = width;
 
   initialize(); // Will initialize the shapes
-  background(0);
+  graphics.background(200);
 }
 
 
 function draw() {
-  borderSize = sliders['borderSize'].value();
+  background(200);
+
+  image(graphics, 0, 0);
 
   push();
-  strokeWeight(borderSize);
-  stroke(200);
+  rectMode(CENTER);
+  strokeWeight(10);
+  stroke(0);
   noFill();
-  rect(0, 0, width, height);
+  rect(width/2, height/2, sliders['width'].value(), sliders['height'].value());
   pop();
 
   // Drawing the circle of doom
@@ -67,25 +75,25 @@ function draw() {
     ellipse(codx, cody, codsize, codsize);
   }
 
-  stroke(255);
+  graphics.stroke(0);
   
   if (random(1) < sliders["forward_sl_prob"].value()) {
-    line(x, y, x+spacing, y+spacing);
+    graphics.line(x, y, x+spacing, y+spacing);
   } else {
-    line(x, y+spacing, x+spacing, y);
+    graphics.line(x, y+spacing, x+spacing, y);
   }
 
   x += spacing;
 
-  if (x > x_limit-borderSize) {
+  if (x > x_limit) {
     x = 0;
     y += spacing;
 
     x_limit += sliders['x_limit_dec'].value() * spacing;
   }
 
-  if (y > height-borderSize) {
-    noLoop();
+  if (y > height) {
+    graphics.noLoop();
   }
 }
 
@@ -93,18 +101,15 @@ function set_canvas_size() {
   x = 0; // Starting all over again
   y = 0;
   resizeCanvas(canvas_sizes[canvas_size.value()][0], canvas_sizes[canvas_size.value()][1]);
-  background(0);
+  graphics.resizeCanvas(canvas_sizes[canvas_size.value()][0], canvas_sizes[canvas_size.value()][1]);
+  background(200);
 }
 
-function changeBorder() {
-  borderSize = sliders['borderSize'].value();
-  translate(borderSize, borderSize);
-}
-
-function changeCOD() {
-  background(0);
+function reset() {
   x = 0;
   y = 0;
+  sliders['x_limit_dec'].value(0);
+  x_limit = width;
 }
 
 function makeSlider(min, max, start, step, callback=null, title_text) { // To create the slider adding an input event to it
@@ -126,15 +131,21 @@ function makeSlider(min, max, start, step, callback=null, title_text) { // To cr
 }
 
 function initialize() {
+  graphics.background(200);
+  reset();
   spacing = sliders['spacing'].value();
 }
 
 function window_resize() {
-	w = sliders['window_width'].value();
-	h = sliders['window_height'].value();
+	w1 = sliders['window_width'].value();
+	h1 = sliders['window_height'].value();
 
-	resizeCanvas(w, h);
-  background(0);
+  w2 = sliders['width'].value();
+  h2 = sliders['height'].value();
+
+	resizeCanvas(w1, h1);
+  graphics.resizeCanvas(w2, h2);
+  background(200);
 }
 
 function download(canvas, filename) {
